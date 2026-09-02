@@ -74,12 +74,12 @@ const Page = () => {
                   <Input type="password" required id="password" onChange={(e) => setPassword(e.target.value)}/>
                 </div>
 
-                {error && <p className="text-red-500">{error}</p>}
+                {error && <p className="text-red-500 text-center">{error}</p>}
               </div>
             </CardContent>
 
             <CardFooter className="mt-4 flex flex-col gap-2">
-              <Button type="submit" disabled={isLoading ? true : false} className={`${isLoading && 'opacity-80'} bg-purple-400 cursor-pointer hover:bg-purple-300`}>
+              <Button type="submit" disabled={isLoading ? true : false} className={`${isLoading && 'opacity-80'} w-35 bg-purple-400 cursor-pointer hover:bg-purple-300`}>
                 {isLoading ? 'Loading...' : 'Log in'}
               </Button>
 

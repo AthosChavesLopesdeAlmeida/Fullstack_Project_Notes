@@ -39,11 +39,11 @@ const Page = () => {
 
     if (!ok) {
       if (status === 401) {
-        setError('Credenciais inválidas');
+        setError('Invalid credentials');
       } else if (status === 0) {
-        setError('Não foi possível conectar ao servidor');
+        setError('Server connection was not possible');
       } else {
-        setError('Erro inesperado');
+        setError('Unexpected error');
       }
       return;
     }
@@ -80,12 +80,12 @@ const Page = () => {
                   <Input type="text" required id="name" onChange={(e) => setName(e.target.value)}/>
                 </div>
 
-                {error && <p className="text-red-500">{error}</p>}
+                {error && <p className="text-red-500 text-center">{error}</p>}
               </div>
             </CardContent>
 
             <CardFooter className="mt-4 flex flex-col gap-2">
-              <Button type="submit" disabled={isLoading ? true : false} className={`${isLoading && 'opacity-80'} bg-purple-400 cursor-pointer hover:bg-purple-300`}>
+              <Button type="submit" disabled={isLoading ? true : false} className={`${isLoading && 'opacity-80'} bg-purple-400 cursor-pointer hover:bg-purple-300 w-35`}>
                 {isLoading ? 'Loading...' : 'Register'}
               </Button>
 

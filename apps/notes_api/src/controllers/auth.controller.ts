@@ -5,7 +5,6 @@ export interface AuthRequest extends Request {
   userId?: string;
 }
 
-
 export const authController = {
     async register (req: Request, res: Response) {
         const { email, name, password } = req.body
