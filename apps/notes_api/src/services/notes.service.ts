@@ -2,12 +2,11 @@ import { notesRepository } from "../repositories/notes.repository";
 import { userRepository } from "../repositories/user.repository";
 
 export const notesService = {
-    async findByUserId (userId: string) {
+    async findByUserId(userId: string) {
         const user = await userRepository.findById(userId)
         if (!user) throw new Error('Invalid credentials')
         
-        const notes = await notesRepository.findByUserId(userId)
-        return { notes }
+        return await notesRepository.findByUserId(userId)
     },
 
     async findUniqueById (userId: string, id: string) {

@@ -4,7 +4,7 @@ import { authMiddleware } from "../middlewares/auth.middleware";
 
 const router = Router()
 
-// Usamos, por exemplo 'GET notes/:id', especificando sempre o método, já que não uso nomes específicos para cada rota
+// Especificamos, por exemplo 'GET notes/:id', especificando sempre o método, já que não uso nomes específicos para cada rota
 
 router.get('/:id', authMiddleware, notesController.findUniqueById)
 router.get('/', authMiddleware, notesController.findByUserId)
