@@ -16,7 +16,7 @@ export const notesService = {
         const note = await notesRepository.findUniqueById(userId, id)
         if (!note) throw new Error('Note not found')
 
-        return { note }
+        return note 
     },
 
     async create (title: string, content: string, userId: string) {
@@ -24,7 +24,7 @@ export const notesService = {
         if (!user) throw new Error('Invalid credentials')
 
         const note = await notesRepository.create({title, content, userId})
-        return { note }
+        return note 
     },
 
     async delete (id: string, userId: string) {

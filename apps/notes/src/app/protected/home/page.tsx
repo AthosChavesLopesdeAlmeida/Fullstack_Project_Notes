@@ -54,7 +54,6 @@ import {
 
 import Markdown from "react-markdown"
 import remarkGfm from "remark-gfm"
-import Masonry from "react-masonry-css"
 
 const Page = () => {
   const [noteTitle, setNoteTitle] = useState('')
@@ -164,6 +163,7 @@ const Page = () => {
     }
 
     fetchNotes()
+    setIsNoteDialogOpen(false)
   }
 
   const archiveNote  = async (id: string, archived: boolean) => {
@@ -183,11 +183,22 @@ const Page = () => {
     }
     
     fetchNotes()
+    setIsNoteDialogOpen(false)
   }
 
   useEffect(() => {
     fetchNotes()
   }, [])
+
+  const nonArchivedNotes = notes.filter((note: Note) => !note.archived)
+
+  const COLUMN_COUNT = 3
+
+  const columns: Note[][] = Array.from({ length: COLUMN_COUNT }, () => [])
+  nonArchivedNotes.forEach((note, index) => {
+    columns[index % COLUMN_COUNT].push(note)
+  })
+
 
   return (
     <SidebarProvider>
@@ -323,18 +334,18 @@ const Page = () => {
 
           {chosenNote && (
             <Dialog open={isNoteDialogOpen} onOpenChange={setIsNoteDialogOpen}>
-              <DialogContent className="flex flex-col">
+              <DialogContent className="flex flex-col pt-10 pb-10">
                 <DialogHeader className="flex flex-row justify-between">                  
                   <DialogTitle>{chosenNote.title}</DialogTitle>
                   
                   <div className="flex flex-row gap-4">
-                    <Trash2 onClick={() => deleteNote(chosenNote.id)} className="cursor-pointer"/>
-                    <Archive onClick={() => archiveNote(chosenNote.id, chosenNote.archived)} className="cursor-pointer"/>
+                    <Trash2 onClick={() => deleteNote(chosenNote.id)} className="cursor-pointer text-red-500"/>
+                    <Archive onClick={() => archiveNote(chosenNote.id, !chosenNote.archived)} className="cursor-pointer"/>
                   </div>
                 </DialogHeader>
 
-                <div>
-                  {chosenNote.content}
+                <div className="break-words">
+                  <Markdown remarkPlugins={[remarkGfm]}>{chosenNote.content}</Markdown>
                 </div>
 
               </DialogContent>
@@ -344,29 +355,32 @@ const Page = () => {
           {isLoading && <h3 className="text-m font-bold">Loading...</h3>}
           {error && <h3 className="text-m font-bold text-red-500">{error}</h3>}
 
-          {notes?.length === 0 && <h1 className="text-4xl font-bold">You have no notes. Create one using the button in the sidebar</h1>}
+          {!isLoading && nonArchivedNotes.length === 0 && (
+            <h1 className="text-4xl font-bold">
+              You have no notes. Create one using the button in the sidebar
+            </h1>
+          )}
 
-
-          <Masonry   
-          breakpointCols={3} 
-          className="my-masonry-grid" 
-          columnClassName="my-masonry-grid_column">
-
-          {notes.map((note: Note) => (
-            <Card key={note.id} className="max-h-200 m-4 w-100 cursor-pointer hover:opacity-80 transition duration-300 ease-in-out" 
-            onClick={() => fetchUniqueNote(note.id)}>
-              <CardHeader>
-                <CardTitle>
-                  {note.title}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Markdown remarkPlugins={[remarkGfm]}>{note.content}</Markdown>
-              </CardContent>
-            </Card>
-          ))}
-
-          </Masonry>
+          <div className="flex gap-4 w-full max-w-6xl items-start">
+            {columns.map((columnNotes, colIndex) => (
+              <div key={colIndex} className="flex flex-col gap-4 flex-1 min-w-0">
+                {columnNotes.map((note) => (
+                  <Card
+                    key={note.id}
+                    className="max-h-[800px] cursor-pointer hover:opacity-80 transition duration-300 ease-in-out overflow-hidden"
+                    onClick={() => fetchUniqueNote(note.id)}
+                  >
+                    <CardHeader>
+                      <CardTitle className="break-words">{note.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="break-words">
+                      <Markdown remarkPlugins={[remarkGfm]}>{note.content}</Markdown>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ))}
+          </div>
         </main>
       </SidebarInset>
     </SidebarProvider>
