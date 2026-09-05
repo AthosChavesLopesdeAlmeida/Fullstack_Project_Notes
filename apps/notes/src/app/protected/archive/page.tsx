@@ -5,11 +5,6 @@ import { apiFetch } from "@/lib/api"
 
 import { Note } from '../../../../../../packages/types/note.type'
 
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-
 import { 
   Card,
   CardHeader,
@@ -20,7 +15,6 @@ import {
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
@@ -47,10 +41,9 @@ import {
   StickyNote,
   Archive,
   Trash2,
-  Plus,
   User,
-  FileQuestionMark,
   LogOut,
+  FileQuestionMark
 } from "lucide-react"
 
 import Markdown from "react-markdown"
@@ -58,16 +51,12 @@ import remarkGfm from "remark-gfm"
 import remarkBreaks from "remark-breaks"
 
 const Page = () => {
-  const [noteTitle, setNoteTitle] = useState('')
-  const [noteContent, setNoteContent] = useState('')
-
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
   const [notes, setNotes] = useState<Note[]>([])
   const [chosenNote, setChosenNote] = useState<Note>()
 
-  const [isCreateNoteFormOpen, setIsCreateNoteFormOpen] = useState(false)
   const [isNoteDialogOpen, setIsNoteDialogOpen] = useState(false)
 
   const router = useRouter()
@@ -125,29 +114,6 @@ const Page = () => {
     setIsNoteDialogOpen(true)
   }
 
-  const createNote = async (e: React.SubmitEvent) => {
-    e.preventDefault()
-    setError('')
-
-    const { ok, status } = await apiFetch('/notes', {
-      method: 'POST',
-      body: JSON.stringify({ title: noteTitle, content: noteContent })
-    })
-
-    if (!ok) {
-      if (status === 401) {
-        return router.push('/login')
-      } else {
-        return setError('Unable to create note')
-      }
-    }
-
-    setNoteContent('')
-    setNoteTitle('')
-    fetchNotes()
-    setIsCreateNoteFormOpen(false)
-  }
-
   const deleteNote = async (id: string) => {
     setError('')
 
@@ -168,7 +134,7 @@ const Page = () => {
     setIsNoteDialogOpen(false)
   }
 
-  const archiveNote  = async (id: string, archived: boolean) => {
+  const unarchiveNote  = async (id: string, archived: boolean) => {
     setError('')
 
     const { ok, status } = await apiFetch(`/notes/${id}/archive`, {
@@ -210,12 +176,12 @@ const Page = () => {
     fetchNotes()
   }, [])
 
-  const nonArchivedNotes = notes.filter((note: Note) => !note.archived)
+  const archivedNotes = notes.filter((note: Note) => note.archived)
 
   const COLUMN_COUNT = 3
 
   const columns: Note[][] = Array.from({ length: COLUMN_COUNT }, () => [])
-  nonArchivedNotes.forEach((note, index) => {
+  archivedNotes.forEach((note, index) => {
     columns[index % COLUMN_COUNT].push(note)
   })
 
@@ -273,12 +239,6 @@ const Page = () => {
             <SidebarGroupLabel>Actions</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton onClick={() => setIsCreateNoteFormOpen(true)}>
-                    <Plus />
-                    <span>Create note</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
 
                 <SidebarMenuItem>
                   <SidebarMenuButton onClick={() => logout()}>
@@ -289,6 +249,7 @@ const Page = () => {
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
+
 
           <SidebarGroup>
             <SidebarGroupLabel>Documentation</SidebarGroupLabel>
@@ -322,37 +283,10 @@ const Page = () => {
       <SidebarInset>
         <header className="flex h-14 items-center gap-2 border-b px-4">
           <SidebarTrigger />
-          <h1 className="text-lg font-semibold">All notes</h1>
+          <h1 className="text-lg font-semibold">Archived notes</h1>
         </header>
 
         <main className="flex flex-1 flex-col items-center gap-4 p-8">
-
-          <Dialog open={isCreateNoteFormOpen} onOpenChange={setIsCreateNoteFormOpen}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Create a new note</DialogTitle>
-                <DialogDescription>Give it a title and write its content in markdown</DialogDescription>
-              </DialogHeader>
-
-              <div>
-                <form onSubmit={(e) => createNote(e)} className="flex flex-col gap-6">
-                    <div className="flex flex-col gap-2">
-                      <Label htmlFor="title">Title</Label>
-                      <Input id="title" required onChange={(e) => setNoteTitle(e.target.value)} value={noteTitle} />
-                    </div>
-
-                    <div className="flex flex-col gap-2">
-                      <Label htmlFor="content">Content</Label>
-                      <Textarea id="content" required onChange={(e) => setNoteContent(e.target.value)} value={noteContent} className="w-[350px] h-[450px]"/>
-                    </div>
-
-                    <Button type="submit" className="bg-purple-400 cursor-pointer hover:bg-purple-300">Create note</Button>
-                </form>
-              </div>
-
-              {error && <p className="text-m font-bold text-red-500">{error}</p>}
-            </DialogContent>
-          </Dialog>
 
 
           {chosenNote && (
@@ -363,7 +297,7 @@ const Page = () => {
 
                   <div className="flex flex-row gap-4">
                     <Trash2 onClick={() => deleteNote(chosenNote.id)} className="cursor-pointer text-red-500"/>
-                    <Archive onClick={() => archiveNote(chosenNote.id, !chosenNote.archived)} className="cursor-pointer"/>
+                    <Archive onClick={() => unarchiveNote(chosenNote.id, !chosenNote.archived)} className="cursor-pointer"/>
                   </div>
                 </DialogHeader>
 
@@ -400,7 +334,7 @@ const Page = () => {
           {isLoading && <h3 className="text-m font-bold">Loading...</h3>}
           {error && <h3 className="text-m font-bold text-red-500">{error}</h3>}
 
-          {!isLoading && nonArchivedNotes.length === 0 && (
+          {!isLoading && archivedNotes.length === 0 && (
             <h1 className="text-4xl font-bold">
               You have no notes. Create one using the button in the sidebar
             </h1>
