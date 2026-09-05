@@ -8,10 +8,10 @@ export interface AuthRequest extends Request {
 
 export const meController = {
     async findUserDataById (req: AuthRequest, res: Response) {
-        const id = req.userId!
+        const userId = req.userId!
 
         try {
-            const userData = await meService.findUserDataById(id)
+            const userData = await meService.findUserDataById(userId)
             res.status(200).json({ userData })
         } catch (err) {
             res.status(404).json({error: 'Unable to fetch your data'})

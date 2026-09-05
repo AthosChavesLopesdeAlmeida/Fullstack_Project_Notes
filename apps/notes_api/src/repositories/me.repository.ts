@@ -4,9 +4,9 @@ import { prisma } from "../lib/prisma";
 // Even though the /auth enpoint does this (or could do), it's for authentication purposes.
 
 export const meRepository = {
-    findUserDataById (id: string) {
+    findUserDataById (userId: string) {
         return  prisma.user.findUnique({
-            where: { id: id }
+            where: { id: userId }
         })
     }
 }
