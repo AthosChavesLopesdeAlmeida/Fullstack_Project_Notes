@@ -1,5 +1,5 @@
 'use client'
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 
 import { apiFetch } from "@/lib/api"
@@ -49,6 +49,28 @@ const Page = () => {
 
     router.push('/protected/home')
   }
+
+  const fetchUser = async () => {
+    const { ok, status } = await apiFetch('/me', {
+      method: 'GET'
+    })
+
+    if (!ok) {
+      if (status === 401 || status === 404) {
+        return
+      }
+    }
+
+    if (status === 200) {
+      return router.push('/protected/home')
+    }
+
+    return
+  }
+
+  useEffect(() => {
+    fetchUser()
+  }, [])
 
   return (
     <div className="flex flex-col gap-3 justify-center items-center min-h-screen bg-black-500">

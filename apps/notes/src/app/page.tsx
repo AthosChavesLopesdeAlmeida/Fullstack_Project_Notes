@@ -1,5 +1,6 @@
 'use client'
 import { useRouter } from "next/navigation";
+import { apiFetch } from "@/lib/api";
 
 import { ButtonGroup } from "@/components/ui/button-group";
 import { Button } from "@/components/ui/button";
@@ -8,13 +9,35 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription 
 } from "@/components/ui/card";
 
-import { Heading3, Feather, PaintbrushVertical, FeatherIcon } from "lucide-react";
+import { Heading3, PaintbrushVertical, FeatherIcon } from "lucide-react";
+import { useEffect } from "react";
 
 export default function Home() {
   const router = useRouter()
+
+  const fetchUser = async () => {
+    const { ok, status } = await apiFetch('/me', {
+      method: 'GET'
+    })
+
+    if (!ok) {
+      if (status === 401 || status === 404) {
+        return
+      }
+    }
+
+    if (status === 200) {
+      return router.push('/protected/home')
+    }
+
+    return 
+  }
+
+  useEffect(() => {
+    fetchUser()
+  }, [])
 
   return (
     <div className="flex flex-col min-h-screen items-center">
