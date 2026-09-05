@@ -54,6 +54,7 @@ import {
 
 import Markdown from "react-markdown"
 import remarkGfm from "remark-gfm"
+import remarkBreaks from "remark-breaks"
 
 const Page = () => {
   const [noteTitle, setNoteTitle] = useState('')
@@ -186,6 +187,24 @@ const Page = () => {
     setIsNoteDialogOpen(false)
   }
 
+  const logout = async () => {
+    setError('')
+
+    const { ok, status } = await apiFetch(`/auth/logout`, {
+      method: 'POST',
+    })
+    
+    if (!ok) {
+      if (status === 401) {
+        return router.push('/login')
+      } else {
+        return setError('Unable to logout')
+      }
+    }
+
+    router.push('/login')
+  }
+
   useEffect(() => {
     fetchNotes()
   }, [])
@@ -245,17 +264,6 @@ const Page = () => {
                     }
                   />
                 </SidebarMenuItem>
-
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    render={
-                      <span onClick={() => router.push('/protected/trash')}>
-                        <Trash2 />
-                        <span>Trash</span>
-                      </span>
-                    }
-                  />
-                </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
@@ -265,14 +273,14 @@ const Page = () => {
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <SidebarMenuButton>
+                  <SidebarMenuButton onClick={() => setIsCreateNoteFormOpen(true)}>
                     <Plus />
-                    <span onClick={() => setIsCreateNoteFormOpen(true)}>Create note</span>
+                    <span>Create note</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
 
                 <SidebarMenuItem>
-                  <SidebarMenuButton>
+                  <SidebarMenuButton onClick={() => logout()}>
                     <LogOut />
                     <span>Logout</span>
                   </SidebarMenuButton>
@@ -334,20 +342,42 @@ const Page = () => {
 
           {chosenNote && (
             <Dialog open={isNoteDialogOpen} onOpenChange={setIsNoteDialogOpen}>
-              <DialogContent className="flex flex-col pt-10 pb-10">
-                <DialogHeader className="flex flex-row justify-between">                  
+              <DialogContent className="flex flex-col sm:max-w-[700px] max-h-[85vh] p-0 gap-0 pt-5">
+                <DialogHeader className="flex flex-row justify-between items-center px-6 pt-6 pb-4 border-b shrink-0">
                   <DialogTitle>{chosenNote.title}</DialogTitle>
-                  
+
                   <div className="flex flex-row gap-4">
                     <Trash2 onClick={() => deleteNote(chosenNote.id)} className="cursor-pointer text-red-500"/>
                     <Archive onClick={() => archiveNote(chosenNote.id, !chosenNote.archived)} className="cursor-pointer"/>
                   </div>
                 </DialogHeader>
 
-                <div className="break-words">
-                  <Markdown remarkPlugins={[remarkGfm]}>{chosenNote.content}</Markdown>
+                <div className="overflow-y-auto px-6 py-4 break-words">
+                  <Markdown
+                    remarkPlugins={[remarkGfm, remarkBreaks]}
+                    components={{
+                      h1: ({ children }) => <h1 className="text-2xl font-bold mt-4 mb-2">{children}</h1>,
+                      h2: ({ children }) => <h2 className="text-xl font-bold mt-3 mb-2">{children}</h2>,
+                      h3: ({ children }) => <h3 className="text-lg font-semibold mt-2 mb-1">{children}</h3>,
+                      ul: ({ children }) => <ul className="list-disc list-inside my-2">{children}</ul>,
+                      ol: ({ children }) => <ol className="list-decimal list-inside my-2">{children}</ol>,
+                      p: ({ children }) => <p className="my-2 break-words">{children}</p>,
+                      a: ({ children, href }) => (
+                        <a href={href} className="text-blue-500 underline" target="_blank" rel="noopener noreferrer">
+                          {children}
+                        </a>
+                      ),
+                      code: ({ children }) => (
+                        <code className="bg-muted px-1 py-0.5 rounded text-sm font-mono">{children}</code>
+                      ),
+                      blockquote: ({ children }) => (
+                        <blockquote className="border-l-4 border-muted pl-4 italic my-2">{children}</blockquote>
+                      ),
+                    }}
+                  >
+                    {chosenNote.content}
+                  </Markdown>
                 </div>
-
               </DialogContent>
             </Dialog>
           )}
@@ -367,14 +397,38 @@ const Page = () => {
                 {columnNotes.map((note) => (
                   <Card
                     key={note.id}
-                    className="max-h-[800px] cursor-pointer hover:opacity-80 transition duration-300 ease-in-out overflow-hidden"
+                    className=" max-h-94 cursor-pointer hover:opacity-80 transition duration-300 ease-in-out overflow-hidden"
                     onClick={() => fetchUniqueNote(note.id)}
                   >
                     <CardHeader>
                       <CardTitle className="break-words">{note.title}</CardTitle>
                     </CardHeader>
-                    <CardContent className="break-words">
-                      <Markdown remarkPlugins={[remarkGfm]}>{note.content}</Markdown>
+                    <CardContent className="break-words max-h-64 overflow-hidden relative">
+                      <Markdown
+                        remarkPlugins={[remarkGfm, remarkBreaks]}
+                        components={{
+                          h1: ({ children }) => <h1 className="text-2xl font-bold mt-4 mb-2">{children}</h1>,
+                          h2: ({ children }) => <h2 className="text-xl font-bold mt-3 mb-2">{children}</h2>,
+                          h3: ({ children }) => <h3 className="text-lg font-semibold mt-2 mb-1">{children}</h3>,
+                          ul: ({ children }) => <ul className="list-disc list-inside my-2">{children}</ul>,
+                          ol: ({ children }) => <ol className="list-decimal list-inside my-2">{children}</ol>,
+                          p: ({ children }) => <p className="my-2 break-words">{children}</p>,
+                          a: ({ children, href }) => (
+                            <a href={href} className="text-blue-500 underline" target="_blank" rel="noopener noreferrer">
+                              {children}
+                            </a>
+                          ),
+                          code: ({ children }) => (
+                            <code className="bg-muted px-1 py-0.5 rounded text-sm font-mono">{children}</code>
+                          ),
+                          blockquote: ({ children }) => (
+                            <blockquote className="border-l-4 border-muted pl-4 italic my-2">{children}</blockquote>
+                          ),
+                        }}
+                      >
+                        {note.content}
+                      </Markdown>
+                      <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-card to-transparent pointer-events-none" />
                     </CardContent>
                   </Card>
                 ))}
