@@ -8,14 +8,15 @@ export interface AuthRequest extends Request {
 export const authController = {
     async register (req: Request, res: Response) {
         const { email, name, password } = req.body
+        const isProduction = process.env.NODE_ENV === 'production'
 
         try {
             const { token, user } = await authService.register(email, name, password)
 
             res.cookie('token', token, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: 'lax',
+                secure: isProduction,
+                sameSite: isProduction ? 'none' : 'lax',
                 maxAge: 1000 * 60 * 60 * 24 * 7,
                 path: '/'
             })
@@ -28,14 +29,15 @@ export const authController = {
 
     async login (req: Request, res: Response) {
         const { email, password } = req.body
+        const isProduction = process.env.NODE_ENV === 'production'
 
         try {
             const { token, user } = await authService.login(email, password)
 
             res.cookie('token', token, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: 'lax',
+                secure: isProduction,
+                sameSite: isProduction ? 'none' : 'lax',
                 maxAge: 1000 * 60 * 60 * 24 * 7,
                 path: '/'
             })
